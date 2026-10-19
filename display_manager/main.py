@@ -4,29 +4,8 @@ from contextlib import suppress
 from os import environ
 from pathlib import Path
 from subprocess import CalledProcessError
-from typing import Literal
 
 from psutil import Popen, Process, process_iter
-
-
-def main() -> Literal["ok"]:
-
-    from .main import Bspwm, X11Vnc, Xfvb
-
-    xfvb = Xfvb()
-    xfvb.start()
-    bspwm = Bspwm(xfvb.display_id)
-    bspwm.start()
-    x11 = X11Vnc(xfvb.display_id)
-    x11.start()
-
-    input("Pressione ENTER para fechar")
-
-    x11.stop()
-    bspwm.stop()
-    xfvb.stop()
-
-    return "ok"
 
 
 def load_env(display: str = "10") -> dict[str, str]:
@@ -104,18 +83,18 @@ class Xfvb:
             self.f.close()
 
 
-class Bspwm:
+class Xfce4:
     def __init__(self, display: str) -> None:
 
         self.display = display
-        self.f = Path("bspwm.log").open("w", encoding="utf-8")  # ruff: ignore[open-file-with-context-handler]
+        self.f = Path("xfce4.log").open("w", encoding="utf-8")  # ruff: ignore[open-file-with-context-handler]
 
     def start(self) -> None:
 
         env = load_env()
         env["DISPLAY"] = self.display
         self.__process = Popen(
-            executable="/usr/bin/bspwm",
+            executable="/usr/bin/startxfce4",
             args=[""],
             env=env,
             start_new_session=True,
