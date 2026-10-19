@@ -2,6 +2,7 @@
 # pyright: reportMissingModuleSource=false
 from contextlib import suppress
 from os import environ
+from pathlib import Path
 from subprocess import CalledProcessError
 from typing import Literal
 
@@ -57,16 +58,13 @@ class Xfvb:
         self.screen_depth = screen_depth
         self.display_id = display_id
 
+        self.f = Path("xfvb.log").open("w", encoding="utf-8")  # ruff: ignore[open-file-with-context-handler]
+        procs = process_iter()
+        v = f"Xvfb :{self.display_id}"
+        filtr = filter(lambda i: v in " ".join(i.cmdline()), procs)
+
         try:
-            check = list(
-                filter(
-                    lambda i: (
-                        f"Xvfb :{self.display_id}"
-                        in " ".join(i.cmdline())
-                    ),
-                    process_iter(),
-                )
-            )
+            check = list(filtr)
             process = next(iter(check), None)
 
             if process:
@@ -94,6 +92,7 @@ class Xfvb:
             ],
             env=load_env(),
             start_new_session=True,
+            stderr=self.f,
         )
 
     def stop(self) -> None:
@@ -101,11 +100,15 @@ class Xfvb:
         with suppress(Exception):
             self.__process.kill()
 
+        with suppress(Exception):
+            self.f.close()
+
 
 class Bspwm:
     def __init__(self, display: str) -> None:
 
         self.display = display
+        self.f = Path("bspwm.log").open("w", encoding="utf-8")  # ruff: ignore[open-file-with-context-handler]
 
     def start(self) -> None:
 
@@ -116,12 +119,16 @@ class Bspwm:
             args=[""],
             env=env,
             start_new_session=True,
+            stderr=self.f,
         )
 
     def stop(self) -> None:
 
         with suppress(Exception):
             self.__process.kill()
+
+        with suppress(Exception):
+            self.f.close()
 
 
 class X11Vnc:
@@ -131,6 +138,7 @@ class X11Vnc:
 
         self.display = display
         self.vnc_port = f"41{display.zfill(3)}"
+        self.f = Path("x11vnc.log").open("w", encoding="utf-8")  # ruff: ignore[open-file-with-context-handler]
 
     def start(self) -> None:
 
@@ -152,9 +160,13 @@ class X11Vnc:
             args=cmd,
             start_new_session=True,
             env=env,
+            stderr=self.f,
         )
 
     def stop(self) -> None:
 
         with suppress(Exception):
             self.__process.kill()
+
+        with suppress(Exception):
+            self.f.close()
