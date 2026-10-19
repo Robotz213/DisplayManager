@@ -129,8 +129,6 @@ class X11Vnc:
 
         cmd = (
             "x11vnc",
-            "-ncache",
-            "10",
             "-rfbport",
             f"{self.vnc_port}",
             "-forever",
