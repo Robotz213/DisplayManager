@@ -8,7 +8,7 @@ requires-python = ">=3.14"
 dependencies = ["psutil>=7.2.2"]
 
 [project.scripts]
-display-manager = "display_manager:main"
+display-manager = "display_manager.main:main"
 
 
 [build-system]
