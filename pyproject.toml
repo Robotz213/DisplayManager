@@ -1,5 +1,5 @@
 [project]
-name = "DisplayManager"
+name = "display-manager"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
@@ -8,7 +8,7 @@ requires-python = ">=3.13"
 dependencies = ["psutil>=7.2.2"]
 
 [project.scripts]
-DisplayManager = "DisplayManager:main"
+display-manager = "display_manager:main"
 
 
 [build-system]
@@ -20,4 +20,4 @@ package-dir = { "" = "." }
 
 [tool.setuptools.packages.find]
 where = ["."]
-include = ["DisplayManager*"]
+include = ["display_manager*"]
