@@ -6,7 +6,7 @@ from pathlib import Path
 from subprocess import CalledProcessError
 from typing import Literal
 
-from psutil import Popen, Process, process_iter
+from psutil import Popen, Process, ZombieProcess, process_iter
 
 
 def load_env(display: str = "10") -> dict[str, str]:
@@ -40,12 +40,17 @@ class Xfvb:
 
         self.f = Path("xfvb.log").open("w", encoding="utf-8")  # ruff: ignore[open-file-with-context-handler]
         procs = process_iter()
-        v = f"Xvfb :{self.display_id}"
-        filtr = filter(lambda i: v in " ".join(i.cmdline()), procs)
+
+        def filter_proc(i: Process) -> bool:
+            v = f"Xvfb :{self.display_id}"
+            try:
+                return v in " ".join(i.cmdline())
+
+            except ZombieProcess:
+                return False
 
         try:
-            check = list(filtr)
-            process = next(iter(check), None)
+            process = next(iter(filter(filter_proc, procs)), None)
 
             if process:
                 with suppress(Exception):
