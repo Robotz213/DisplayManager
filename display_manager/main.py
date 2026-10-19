@@ -4,6 +4,7 @@ from contextlib import suppress
 from os import environ
 from pathlib import Path
 from subprocess import CalledProcessError
+from typing import Literal
 
 from psutil import Popen, Process, process_iter
 
@@ -151,3 +152,23 @@ class X11Vnc:
 
         with suppress(Exception):
             self.f.close()
+
+
+def main() -> Literal["ok"]:
+
+    from .main import X11Vnc, Xfce4, Xfvb
+
+    xfvb = Xfvb()
+    xfvb.start()
+    xfce4 = Xfce4(xfvb.display_id)
+    xfce4.start()
+    x11 = X11Vnc(xfvb.display_id)
+    x11.start()
+
+    input("Pressione ENTER para fechar")
+
+    x11.stop()
+    xfce4.stop()
+    xfvb.stop()
+
+    return "ok"
