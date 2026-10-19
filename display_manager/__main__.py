@@ -1,10 +1,4 @@
-from threading import Event  # ruff: ignore[undocumented-public-module]
+if __name__ == "__main__":  # ruff: ignore[undocumented-public-module]
+    from .main import main
 
-from .main import Bspwm, X11Vnc, Xfvb
-
-xfvb = Xfvb()
-xfvb.start()
-Bspwm(xfvb.display_id).start()
-X11Vnc(xfvb.display_id).start()
-
-Event().wait()
+    main()

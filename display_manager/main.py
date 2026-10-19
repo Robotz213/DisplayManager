@@ -10,6 +10,21 @@ from psutil import Popen, Process, process_iter
 
 def main() -> Literal["ok"]:
 
+    from .main import Bspwm, X11Vnc, Xfvb
+
+    xfvb = Xfvb()
+    xfvb.start()
+    bspwm = Bspwm(xfvb.display_id)
+    bspwm.start()
+    x11 = X11Vnc(xfvb.display_id)
+    x11.start()
+
+    input("Pressione ENTER para fechar")
+
+    x11.stop()
+    bspwm.stop()
+    xfvb.stop()
+
     return "ok"
 
 
