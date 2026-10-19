@@ -9,7 +9,7 @@ from typing import Literal
 from psutil import Popen, Process, ZombieProcess, process_iter
 
 
-def load_env(display: str = "10") -> dict[str, str]:
+def load_env(display: str = "20") -> dict[str, str]:
 
     env = environ.copy()
     env["DISPLAY"] = f":{display}"
@@ -22,7 +22,7 @@ class Xfvb:
     screen_width: str = "1600"
     screen_height: str = "900"
     screen_depth: str = "24"
-    display_id: str = "10"
+    display_id: str = "20"
     EXECUTABLE = "/usr/bin/Xvfb"
 
     def __init__(
@@ -30,7 +30,7 @@ class Xfvb:
         screen_width: str = "1600",
         screen_height: str = "900",
         screen_depth: str = "24",
-        display_id: str = "10",
+        display_id: str = "20",
     ) -> None:
 
         self.screen_width = screen_width
