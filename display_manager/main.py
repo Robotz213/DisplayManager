@@ -8,6 +8,9 @@ from typing import Literal
 
 from psutil import Popen, Process, ZombieProcess, process_iter
 
+logs = Path.home() / "logs"
+logs.mkdir(exist_ok=True)
+
 
 def load_env(display: str = "20") -> dict[str, str]:
 
@@ -19,10 +22,15 @@ def load_env(display: str = "20") -> dict[str, str]:
 
 
 class Xfvb:
-    screen_width: str = "1600"
-    screen_height: str = "900"
-    screen_depth: str = "24"
-    display_id: str = "20"
+    __slots__ = (
+        "screen_width",
+        "screen_height",
+        "screen_depth",
+        "display_id",
+        "f",
+        "__process",
+    )
+
     EXECUTABLE = "/usr/bin/Xvfb"
 
     def __init__(
@@ -38,7 +46,7 @@ class Xfvb:
         self.screen_depth = screen_depth
         self.display_id = display_id
 
-        self.f = Path("xfvb.log").open("w", encoding="utf-8")  # ruff: ignore[open-file-with-context-handler]
+        self.f = (logs / "xfvb.log").open("w", encoding="utf-8")  # ruff: ignore[open-file-with-context-handler]
         procs = process_iter()
 
         def filter_proc(i: Process) -> bool:
@@ -90,10 +98,12 @@ class Xfvb:
 
 
 class Xfce4:
+    __slots__ = ("display", "f", "__process")
+
     def __init__(self, display: str) -> None:
 
         self.display = display
-        self.f = Path("xfce4.log").open("w", encoding="utf-8")  # ruff: ignore[open-file-with-context-handler]
+        self.f = (logs / "xfce4.log").open("w", encoding="utf-8")  # ruff: ignore[open-file-with-context-handler]
 
     def start(self) -> None:
 
@@ -118,12 +128,13 @@ class Xfce4:
 
 class X11Vnc:
     EXECUTABLE = "/usr/bin/x11vnc"
+    __slots__ = ("f", "display", "vnc_port", "__process")
 
     def __init__(self, display: str) -> None:
 
         self.display = display
         self.vnc_port = f"41{display.zfill(3)}"
-        self.f = Path("x11vnc.log").open("w", encoding="utf-8")  # ruff: ignore[open-file-with-context-handler]
+        self.f = (logs / "x11vnc.log").open("w", encoding="utf-8")  # ruff: ignore[open-file-with-context-handler]
 
     def start(self) -> None:
 
