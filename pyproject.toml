@@ -1,7 +1,7 @@
 [project]
 name = "display-manager"
-version = "0.1.0"
-description = "Add your description here"
+version = "0.1.1"
+description = "Gerenciador de display X (Linux)"
 readme = "README.md"
 authors = [{ name = "Robotz213", email = "nicholasazs213@gmail.com" }]
 requires-python = ">=3.14"
