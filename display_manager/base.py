@@ -52,25 +52,7 @@ class Xfvb:
         self.display_id = display_id
 
         self.f = (logs / "xfvb.log").open("w", encoding="utf-8")  # ruff: ignore[open-file-with-context-handler]
-        procs = process_iter()
-
-        def filter_proc(i: Process) -> bool:
-            v = f"Xvfb :{self.display_id}"
-            try:
-                return v in " ".join(i.cmdline())
-
-            except ZombieProcess:
-                return False
-
-        try:
-            process = next(iter(filter(filter_proc, procs)), None)
-
-            if process:
-                with suppress(Exception):
-                    Process(process.pid).kill()
-            return
-        except CalledProcessError as e:
-            _ = e
+        self.kill_display(display_id)
 
     def start(self) -> None:
 
@@ -100,6 +82,28 @@ class Xfvb:
 
         with suppress(Exception):
             self.f.close()
+
+    @classmethod
+    def kill_display(cls, display: str) -> None:
+        procs = process_iter()
+
+        def filter_proc(i: Process) -> bool:
+            v = f"Xvfb :{display}"
+            try:
+                return v in " ".join(i.cmdline())
+
+            except ZombieProcess:
+                return False
+
+        try:
+            process = next(iter(filter(filter_proc, procs)), None)
+
+            if process:
+                with suppress(Exception):
+                    Process(process.pid).kill()
+            return
+        except CalledProcessError as e:
+            _ = e
 
 
 class Xfce4:
