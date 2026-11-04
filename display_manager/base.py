@@ -73,6 +73,7 @@ class Xfvb:
             env=load_env(),
             start_new_session=True,
             stderr=self.f,
+            stdout=self.f,
         )
 
     def stop(self) -> None:
@@ -124,6 +125,7 @@ class Xfce4:
             env=env,
             start_new_session=True,
             stderr=self.f,
+            stdout=self.f,
         )
 
     def stop(self) -> None:
@@ -166,6 +168,7 @@ class X11Vnc:
             start_new_session=True,
             env=env,
             stderr=self.f,
+            stdout=self.f,
         )
 
     def stop(self) -> None:
