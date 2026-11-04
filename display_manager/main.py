@@ -1,185 +1,179 @@
-# ruff: file-ignore[undocumented-public-method, undocumented-public-module, undocumented-public-init, undocumented-public-function, undocumented-public-class]
-# pyright: reportMissingModuleSource=false
+"""Forneca recursos do modulo base."""
+
+# ruff: file-ignore[builtin-attribute-shadowing]
+
+import json
 from contextlib import suppress
-from os import environ
+from logging import getLogger
+from os import environ as env
 from pathlib import Path
-from subprocess import CalledProcessError
-from typing import Literal
+from platform import system
+from typing import TYPE_CHECKING, Protocol
 
-from psutil import Popen, Process, ZombieProcess, process_iter
+from dotenv import dotenv_values
 
-logs = Path.home() / "logs"
-logs.mkdir(exist_ok=True)
+from display_manager import X11Vnc, Xfvb
 
+if TYPE_CHECKING:
 
-def load_env(display: str = "20") -> dict[str, str]:
-
-    env = environ.copy()
-    env["DISPLAY"] = f":{display}"
-    env["XDG_SESSION_TYPE"] = "x11"
-    env.pop("WAYLAND_DISPLAY", None)
-    return env
+    class Managed(Protocol):  # ruff: ignore[undocumented-public-class]
+        id_execucao: str
 
 
-class Xfvb:
-    __slots__ = (
-        "screen_width",
-        "screen_height",
-        "screen_depth",
-        "display_id",
-        "f",
-        "__process",
-    )
+EMPTY_DICT: dict[int, str] = {}
+"""Coleção inicial usada pelo fluxo de base."""
+WORKDIR = Path.cwd()
+"""Caminho de arquivos usado pelo fluxo de base."""
 
-    EXECUTABLE = "/usr/bin/Xvfb"
+ArgumentsList = []
+logger = getLogger(__name__)
 
-    def __init__(
-        self,
-        screen_width: str = "1600",
-        screen_height: str = "900",
-        screen_depth: str = "24",
-        display_id: str = "20",
-    ) -> None:
 
-        self.screen_width = screen_width
-        self.screen_height = screen_height
-        self.screen_depth = screen_depth
-        self.display_id = display_id
+class DisplayManager:
+    """Represente display manager."""
 
-        self.f = (logs / "xfvb.log").open("w", encoding="utf-8")  # ruff: ignore[open-file-with-context-handler]
-        procs = process_iter()
+    def __init__(self, managed: Managed) -> None:
+        """Inicialize display manager.
 
-        def filter_proc(i: Process) -> bool:
-            v = f"Xvfb :{self.display_id}"
-            try:
-                return v in " ".join(i.cmdline())
+        Args:
+            managed (Managed): managed.
 
-            except ZombieProcess:
-                return False
-
-        try:
-            process = next(iter(filter(filter_proc, procs)), None)
-
-            if process:
-                with suppress(Exception):
-                    Process(process.pid).kill()
+        """
+        self.managed = managed
+        self.id_execucao = managed.id_execucao
+        if not self.__check():
+            d_ = env.get("DISPLAY", "5")
+            id_ = int(d_.replace(":", ""))
+            self.id = id_
+            self.display = id_
             return
-        except CalledProcessError as e:
-            _ = e
 
-    def start(self) -> None:
+        displays = self.load_displays()
+        display = len(displays.keys()) + 20
 
-        geometry = (
-            f"{self.screen_width}x"
-            f"{self.screen_height}x"
-            f"{self.screen_depth}"
-        )
+        displays[display] = managed.id_execucao
+        self.save_displays(displays)
 
-        self.__process = Popen(
-            [
-                self.EXECUTABLE,
-                f":{self.display_id}",
-                "-screen",
-                "0",
-                geometry,
-            ],
-            env=load_env(),
-            start_new_session=True,
-            stderr=self.f,
-        )
-
-    def stop(self) -> None:
-
-        with suppress(Exception):
-            self.__process.kill()
-
-        with suppress(Exception):
-            self.f.close()
-
-
-class Xfce4:
-    __slots__ = ("display", "f", "__process")
-
-    def __init__(self, display: str) -> None:
-
+        self.id = display
+        self.width = 1536
+        self.height = 864
         self.display = display
-        self.f = (logs / "xfce4.log").open("w", encoding="utf-8")  # ruff: ignore[open-file-with-context-handler]
+
+    @property
+    def id(self) -> int:
+        """Obtenha id.
+
+        Returns:
+            int: Resultado de obtenha id.
+
+        """
+        if not hasattr(self, "_id"):
+            self._id = 10
+
+        return self._id
+
+    @id.setter
+    def id(self, id_: int) -> None:
+        """Atualize id.
+
+        Args:
+            id_ (int): Numero inteiro de id.
+
+        """
+        self._id = id_
+
+    def load_displays(self) -> dict[int, str]:
+        """Carregue load displays.
+
+        Returns:
+            dict[int, str]: Resultado de carregue load displays.
+
+        """
+        displays: dict[int, str] = {}
+        path = WORKDIR.joinpath("tmp", "displays.json")
+        if not path.exists():
+            path.parent.mkdir(exist_ok=True)
+
+        if path.exists():
+            displays = json.loads(path.read_text())
+
+        self._displays_dict = displays
+
+        return displays
+
+    def save_displays(self, displays: dict[int, str]) -> None:
+        """Grave save displays.
+
+        Args:
+            displays (dict[int, str]): Dicionario de displays.
+
+        """
+        _ = self
+        path = WORKDIR.joinpath("tmp", "displays.json")
+        if not path.exists():
+            path.parent.mkdir(exist_ok=True)
+        path.write_text(json.dumps(displays))
 
     def start(self) -> None:
+        """Inicie start."""
+        if not self.__check():
+            return
 
-        env = load_env()
-        env["DISPLAY"] = self.display
-        self.__process = Popen(
-            executable="/usr/bin/startxfce4",
-            args=[""],
-            env=env,
-            start_new_session=True,
-            stderr=self.f,
+        self.xfvb = Xfvb(
+            str(self.width),
+            str(self.height),
+            "24",
+            str(self.display),
         )
+
+        self.x11 = X11Vnc(str(self.display))
+        self.xfvb.start()
+        self.x11.start()
+
+        return
 
     def stop(self) -> None:
+        """Encerre stop."""
+        if not self.__check():
+            return
 
         with suppress(Exception):
-            self.__process.kill()
+            self.x11.stop()
 
         with suppress(Exception):
-            self.f.close()
+            self.xfvb.stop()
 
+        displays = self.load_displays()
+        display = self.get_display()
+        displays.pop(display)
+        self.save_displays(displays)
 
-class X11Vnc:
-    EXECUTABLE = "/usr/bin/x11vnc"
-    __slots__ = ("f", "display", "vnc_port", "__process")
+    def get_display(self) -> int:
+        """Obtenha get display.
 
-    def __init__(self, display: str) -> None:
+        Returns:
+            int: Resultado de obtenha get display.
 
-        self.display = display
-        self.vnc_port = f"41{display.zfill(3)}"
-        self.f = (logs / "x11vnc.log").open("w", encoding="utf-8")  # ruff: ignore[open-file-with-context-handler]
+        """
+        pid = self.id_execucao
+        displays = self.load_displays()
+        display = list(filter(lambda x: x[1] == pid, displays.items()))
 
-    def start(self) -> None:
+        return display[0][0]
 
-        cmd = (
-            "x11vnc",
-            "-rfbport",
-            f"{self.vnc_port}",
-            "-forever",
-            "-shared",
-            "-display",
-            f":{self.display}",
-            "-nopw",
-        )
+    def __check(self) -> bool:
+        _ = self
 
-        env = load_env()
-        env.pop("WAYLAND_DISPLAY", None)
-        self.__process = Popen(
-            executable=self.EXECUTABLE,
-            args=cmd,
-            start_new_session=True,
-            env=env,
-            stderr=self.f,
-        )
+        def __is_wsl() -> bool:
+            val = dotenv_values(".env").get("IS_WSL", "False") or ""
+            return (val or "").lower() != "true"
 
-    def stop(self) -> None:
+        if system() == "Linux":
+            return __is_wsl()
 
-        with suppress(Exception):
-            self.__process.kill()
+        if system() == "Windows":
+            logger.warning("Este módulo só funciona no linux!")
 
-        with suppress(Exception):
-            self.f.close()
+            return False
 
-
-def main() -> Literal["ok"]:
-
-    from .main import X11Vnc, Xfvb
-
-    xfvb = Xfvb()
-    xfvb.start()
-    x11 = X11Vnc(xfvb.display_id)
-    x11.start()
-
-    input("Pressione ENTER para fechar")
-
-    x11.stop()
-    xfvb.stop()
-
-    return "ok"
+        return __is_wsl()
