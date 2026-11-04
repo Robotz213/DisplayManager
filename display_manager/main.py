@@ -9,6 +9,7 @@ from os import environ as env
 from pathlib import Path
 from platform import system
 from typing import TYPE_CHECKING, Protocol
+from uuid import uuid4
 
 from dotenv import dotenv_values
 
@@ -32,15 +33,14 @@ logger = getLogger(__name__)
 class DisplayManager:
     """Represente display manager."""
 
-    def __init__(self, managed: Managed) -> None:
+    def __init__(self) -> None:
         """Inicialize display manager.
 
         Args:
             managed (Managed): managed.
 
         """
-        self.managed = managed
-        self.id_execucao = managed.id_execucao
+        self.session = uuid4().hex
         if not self.__check():
             d_ = env.get("DISPLAY", "5")
             id_ = int(d_.replace(":", ""))
@@ -51,7 +51,7 @@ class DisplayManager:
         displays = self.load_displays()
         display = len(displays.keys()) + 20
 
-        displays[display] = managed.id_execucao
+        displays[display] = self.session
         self.save_displays(displays)
 
         self.id = display
@@ -155,7 +155,7 @@ class DisplayManager:
             int: Resultado de obtenha get display.
 
         """
-        pid = self.id_execucao
+        pid = self.session
         displays = self.load_displays()
         display = list(filter(lambda x: x[1] == pid, displays.items()))
 
