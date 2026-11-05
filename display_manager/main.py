@@ -8,7 +8,7 @@ from logging import getLogger
 from os import environ as env
 from pathlib import Path
 from platform import system
-from typing import TYPE_CHECKING, Protocol
+from typing import TYPE_CHECKING, Literal, Protocol
 from uuid import uuid4
 
 from dotenv import dotenv_values
@@ -177,3 +177,20 @@ class DisplayManager:
             return False
 
         return __is_wsl()
+
+
+def main() -> Literal["ok"]:  # ruff: ignore[undocumented-public-function]
+
+    from .base import X11Vnc, Xfvb
+
+    xfvb = Xfvb()
+    xfvb.start()
+    x11 = X11Vnc(xfvb.display_id)
+    x11.start()
+
+    input("Pressione ENTER para fechar")
+
+    x11.stop()
+    xfvb.stop()
+
+    return "ok"

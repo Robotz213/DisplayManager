@@ -9,7 +9,6 @@ from contextlib import suppress
 from os import environ
 from pathlib import Path
 from subprocess import CalledProcessError
-from typing import Literal
 
 from psutil import Popen, Process, ZombieProcess, process_iter
 
@@ -178,20 +177,3 @@ class X11Vnc:
 
         with suppress(Exception):
             self.f.close()
-
-
-def main() -> Literal["ok"]:
-
-    from .base import X11Vnc, Xfvb
-
-    xfvb = Xfvb()
-    xfvb.start()
-    x11 = X11Vnc(xfvb.display_id)
-    x11.start()
-
-    input("Pressione ENTER para fechar")
-
-    x11.stop()
-    xfvb.stop()
-
-    return "ok"
