@@ -1,6 +1,6 @@
 [project]
 name = "display-manager"
-version = "0.1.3"
+version = "0.1.5"
 description = "Gerenciador de display X (Linux)"
 readme = "README.md"
 authors = [{ name = "Robotz213", email = "nicholasazs213@gmail.com" }]
