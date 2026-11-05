@@ -5,6 +5,7 @@
 # ruff: file-ignore[undocumented-public-class]
 
 # pyright: reportMissingModuleSource=false
+import sys
 from contextlib import suppress
 from os import environ
 from pathlib import Path
@@ -50,7 +51,7 @@ class Xfvb:
         self.screen_depth = screen_depth
         self.display_id = display_id
 
-        self.f = (logs / "xfvb.log").open("w", encoding="utf-8")  # ruff: ignore[open-file-with-context-handler]
+        self.f = (logs / "xfvb_info.log").open("w", encoding="utf-8")  # ruff: ignore[open-file-with-context-handler]
         self.kill_display(display_id)
 
     def start(self) -> None:
@@ -71,8 +72,8 @@ class Xfvb:
             ],
             env=load_env(),
             start_new_session=True,
-            stderr=self.f,
-            stdout=self.f,
+            stderr=sys.stderr,
+            stdout=sys.stdout,
         )
 
     def stop(self) -> None:
@@ -123,8 +124,7 @@ class Xfce4:
             args=[""],
             env=env,
             start_new_session=True,
-            stderr=self.f,
-            stdout=self.f,
+            stderr=sys.stderr,
         )
 
     def stop(self) -> None:
@@ -166,8 +166,7 @@ class X11Vnc:
             args=cmd,
             start_new_session=True,
             env=env,
-            stderr=self.f,
-            stdout=self.f,
+            stdout=sys.stdout,
         )
 
     def stop(self) -> None:
