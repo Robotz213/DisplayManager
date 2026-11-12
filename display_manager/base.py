@@ -143,7 +143,7 @@ class X11Vnc:
     def __init__(self, display: str) -> None:
 
         self.display = display
-        self.vnc_port = f"41{display.zfill(3)}"
+        self.vnc_port = f"14{display.zfill(3)}"
         self.f = (logs / "x11vnc.log").open("w", encoding="utf-8")  # ruff: ignore[open-file-with-context-handler]
 
     def start(self) -> None:
