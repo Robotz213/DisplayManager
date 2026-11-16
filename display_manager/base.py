@@ -5,11 +5,10 @@
 # ruff: file-ignore[undocumented-public-class]
 
 # pyright: reportMissingModuleSource=false
-import sys
 from contextlib import suppress
 from os import environ
 from pathlib import Path
-from subprocess import CalledProcessError
+from subprocess import DEVNULL, CalledProcessError
 
 from psutil import Popen, Process, ZombieProcess, process_iter
 
@@ -72,8 +71,8 @@ class Xfvb:
             ],
             env=load_env(),
             start_new_session=True,
-            stderr=sys.stderr,
-            stdout=sys.stdout,
+            stdout=DEVNULL,
+            stderr=DEVNULL,
         )
 
     def stop(self) -> None:
@@ -124,7 +123,8 @@ class Xfce4:
             args=[""],
             env=env,
             start_new_session=True,
-            stderr=sys.stderr,
+            stdout=DEVNULL,
+            stderr=DEVNULL,
         )
 
     def stop(self) -> None:
@@ -166,7 +166,8 @@ class X11Vnc:
             args=cmd,
             start_new_session=True,
             env=env,
-            stdout=sys.stdout,
+            stdout=DEVNULL,
+            stderr=DEVNULL,
         )
 
     def stop(self) -> None:
