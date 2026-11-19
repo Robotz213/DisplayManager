@@ -101,6 +101,7 @@ class Xfvb:
             if process:
                 with suppress(Exception):
                     Process(process.pid).kill()
+
             return
         except CalledProcessError as e:
             _ = e
